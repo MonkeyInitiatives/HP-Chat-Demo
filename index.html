@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" type="text/css" href="style.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-
+    <script src="Chart.js"></script>
     <!-- Latest compiled and minified CSS -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
     <!-- Optional theme -->
@@ -20,37 +20,37 @@
 </head>
 <body>
 
-        <div class="container">
+    <div class="container">
 
-                <!-- <button type='button' class="btn btn-success" data-toggle="modal" data-target="#popUpWindow"></button> -->
-                
-                <div class="modal fade" id="popUpWindow">
-                  <div class="modal-dialog">
-                    <div class="modal-content">
-                      <!-- header -->
-                      <div class="modal-header">
-                        <button type="button" class="close" data-dismiss="modal">&times;</button>
-                        <h3 class="modal-title">Chat User Name</h3>
-                      </div>
-                      <!-- body -->
-                      <div class="modal-header">
-                        <form role="form">
-                          <div class="form-group">
-                            <input type="text" class="form-control" id="user-name" placeholder="Harry Potter"/>
-                            <!-- <input type="password" class="form-control" placeholder="Password" /> -->
-                          </div>
-                        </form>
-                      </div>
-                      <!-- footer -->
-                      <div class="modal-footer">
-                        <button class="btn btn-primary btn-block" id="modal-login">Log In</button>
-                      </div>
-                      
+            <!-- <button type='button' class="btn btn-success" data-toggle="modal" data-target="#popUpWindow"></button> -->
+            
+            <div class="modal fade" id="popUpWindow">
+                <div class="modal-dialog">
+                <div class="modal-content">
+                    <!-- header -->
+                    <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h3 class="modal-title">Chat User Name</h3>
                     </div>
-                  </div>
+                    <!-- body -->
+                    <div class="modal-header">
+                    <form role="form">
+                        <div class="form-group">
+                        <input type="text" class="form-control" id="user-name" placeholder="Harry Potter"/>
+                        <!-- <input type="password" class="form-control" placeholder="Password" /> -->
+                        </div>
+                    </form>
+                    </div>
+                    <!-- footer -->
+                    <div class="modal-footer">
+                    <button class="btn btn-primary btn-block" id="modal-login">Log In</button>
+                    </div>
+                    
                 </div>
-                
-        </div>
+                </div>
+            </div>
+            
+    </div>
 
 
     <form id="chat-form">
@@ -60,7 +60,15 @@
     <div id="chat-room" style="height: 350px; overflow: auto;"></div>
         
     </div>
-    
+
+    <button type='button' class="btn btn-success" id="gryffindor">gryffindor</button>
+    <button type='button' class="btn btn-success" id="hufflepuff">hufflepuff</button>
+    <button type='button' class="btn btn-success" id="ravenclaw">ravenclaw</button>
+    <button type='button' class="btn btn-success" id="slytherin">slytherin</button>
+    <div id="house-points"></div>
+    <div style="max-width:400px; max-height:200px">
+    <canvas id="myChart" width="400" height="200"></canvas>
+    </div>
     <script>
 
     var config = {
@@ -73,13 +81,28 @@
     };
     firebase.initializeApp(config);
     var database = firebase.database();
-    database.ref().on("value", function(snapshot) {
 
+    var globalSnapshot;
+    database.ref().on("value", function(snapshot) {
+    globalSnapshot = snapshot.val();
     if(snapshot.hasChild("chat")==true)
     {
         $("#chat-room").html(snapshot.val().chat.chatRoom);
     }
-
+    if(snapshot.hasChild("houses")==false){
+        writeHousePoints("gryffindor", "0");
+        writeHousePoints("hufflepuff", "0");
+        writeHousePoints("ravenclaw", "0");
+        writeHousePoints("slytherin", "0");
+    }
+    else{
+        $("#house-points").empty();
+        $("#house-points").append("<p>"+globalSnapshot.houses.gryffindor.houseName+": "+globalSnapshot.houses.gryffindor.housePoints+" points</p>");
+        $("#house-points").append("<p>"+globalSnapshot.houses.hufflepuff.houseName+": "+globalSnapshot.houses.hufflepuff.housePoints+" points</p>");
+        $("#house-points").append("<p>"+globalSnapshot.houses.ravenclaw.houseName+": "+globalSnapshot.houses.ravenclaw.housePoints+" points</p>");
+        $("#house-points").append("<p>"+globalSnapshot.houses.slytherin.houseName+": "+globalSnapshot.houses.slytherin.housePoints+" points</p>");
+        makeHouseChart();
+    }
     if(sessionStorage.getItem("username")==null)
             {
                 // var player = prompt("Please enter your name", "");
@@ -88,6 +111,13 @@
             }
 
     });
+
+    function writeHousePoints(name, points) {
+            firebase.database().ref('houses/' + name).set({
+                houseName: name,
+                housePoints: points
+            });
+        }
 
     $("#modal-login").on("click", function(event) {
         event.preventDefault();
@@ -116,6 +146,63 @@
                 $("#chatComment").val("");
             }
         });
+
+
+
+        $("#gryffindor").on("click", function(event) {
+            writeHousePoints(globalSnapshot.houses.gryffindor.houseName, parseInt(globalSnapshot.houses.gryffindor.housePoints)+10);
+        });
+        $("#hufflepuff").on("click", function(event) {
+            writeHousePoints(globalSnapshot.houses.hufflepuff.houseName, parseInt(globalSnapshot.houses.hufflepuff.housePoints)+10);
+        });
+        $("#ravenclaw").on("click", function(event) {
+            writeHousePoints(globalSnapshot.houses.ravenclaw.houseName, parseInt(globalSnapshot.houses.ravenclaw.housePoints)+10);
+        });
+        $("#slytherin").on("click", function(event) {
+            writeHousePoints(globalSnapshot.houses.slytherin.houseName, parseInt(globalSnapshot.houses.slytherin.housePoints)+10);
+        });
+        
+
+
+        function makeHouseChart(){
+            var ctx = $("#myChart");
+            var myChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ["Gryffindor", "Hufflepuff", "Ravenclaw", "Slytherin"],
+                    datasets: [{
+                        label: '# of points',
+                        data: [parseInt(globalSnapshot.houses.gryffindor.housePoints), parseInt(globalSnapshot.houses.hufflepuff.housePoints), parseInt(globalSnapshot.houses.ravenclaw.housePoints), parseInt(globalSnapshot.houses.slytherin.housePoints)],
+                        backgroundColor: [
+                            '#FF2400',
+                            '#FFFF00',
+                            '#0000FF',
+                            '#00FF00',
+                        ],
+                        borderColor: [
+                            '#FFD700',
+                            '#FFFFF',
+                            '#CD7F32',
+                            '#C0C0C0',
+                        ],
+                        borderWidth: 5
+                    }]
+                },
+                options: {
+                    scales: {
+                        yAxes: [{
+                            ticks: {
+                                beginAtZero:true
+                            }
+                        }]
+                    },
+                    legend: { display: false },
+                }
+            });
+        }
+
+
+
 
     </script>
 
