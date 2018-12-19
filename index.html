@@ -69,6 +69,27 @@
     <div style="max-width:400px; max-height:200px">
     <canvas id="myChart" width="400" height="200"></canvas>
     </div>
+
+    <div id="random-sorting-house"></div>
+    <div id="rotten-tomato-scraping"></div>
+
+    <script type="text/javascript" language="javascript" src="https://www.boxofficemojo.com/data/js/moviegross.php?id=harrypotter.htm&amp;shortgross=0"></script>
+<!-- </br>
+    <script type="text/javascript" language="javascript" src="https://www.boxofficemojo.com/data/js/moviegross.php?id=harrypotter2.htm&amp;shortgross=0"></script>
+</br>
+    <script type="text/javascript" language="javascript" src="https://www.boxofficemojo.com/data/js/moviegross.php?id=harrypotter3.htm&amp;shortgross=0"></script>
+</br>
+    <script type="text/javascript" language="javascript" src="https://www.boxofficemojo.com/data/js/moviegross.php?id=harrypotter4.htm&amp;shortgross=0"></script>
+</br>
+    <script type="text/javascript" language="javascript" src="https://www.boxofficemojo.com/data/js/moviegross.php?id=harrypotter5.htm&amp;shortgross=0"></script>
+</br>
+    <script type="text/javascript" language="javascript" src="https://www.boxofficemojo.com/data/js/moviegross.php?id=harrypotter6.htm&amp;shortgross=0"></script>
+</br>
+    <script type="text/javascript" language="javascript" src="https://www.boxofficemojo.com/data/js/moviegross.php?id=harrypotter7.htm&amp;shortgross=0"></script>
+</br>
+    <script type="text/javascript" language="javascript" src="https://www.boxofficemojo.com/data/js/moviegross.php?id=harrypotter72.htm&amp;shortgross=0"></script> -->
+
+
     <script>
 
     var config = {
@@ -104,11 +125,29 @@
         makeHouseChart();
     }
     if(sessionStorage.getItem("username")==null)
-            {
-                // var player = prompt("Please enter your name", "");
-                $("#popUpWindow").modal().show();
-                
-            }
+    {
+        // var player = prompt("Please enter your name", "");
+        $("#popUpWindow").modal().show();
+        
+    }
+
+    $.ajax({
+			url: "https://www.potterapi.com/v1/sortingHat",
+			method: "GET"
+		}).then(function(response) {
+
+            $("#random-sorting-house").text("This is a random sorting hat from the Potter API: "+response);
+        });
+
+//https://www.rottentomatoes.com/api/private/v2.0/search?q=Harry+Potter+and+the+Sorcerer
+    $.ajax({
+			url: "https://www.rottentomatoes.com/api/private/v2.0/search?q=Harry+Potter+and+the+Sorcerer",
+			method: "GET"
+		}).then(function(response) {
+            console.log(response.movies[0]);
+            $("#rotten-tomato-scraping").text(response.movies[0].name + "'s Rotten Tomato score: "+response.movies[0].meterScore);
+        });
+        
 
     });
 
