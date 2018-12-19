@@ -8,6 +8,7 @@
     <link rel="stylesheet" type="text/css" href="style.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
     <script src="Chart.js"></script>
+
     <!-- Latest compiled and minified CSS -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
     <!-- Optional theme -->
@@ -72,6 +73,7 @@
 
     <div id="random-sorting-house"></div>
     <div id="rotten-tomato-scraping"></div>
+    <div id="similar-movies"></div>
 
     <script type="text/javascript" language="javascript" src="https://www.boxofficemojo.com/data/js/moviegross.php?id=harrypotter.htm&amp;shortgross=0"></script>
 <!-- </br>
@@ -144,10 +146,25 @@
 			url: "https://www.rottentomatoes.com/api/private/v2.0/search?q=Harry+Potter+and+the+Sorcerer",
 			method: "GET"
 		}).then(function(response) {
-            console.log(response.movies[0]);
+            // console.log(response.movies[0]);
             $("#rotten-tomato-scraping").text(response.movies[0].name + "'s Rotten Tomato score: "+response.movies[0].meterScore);
         });
-        
+//https://tastedive.com/api/similar?q=harry+potter&type=movies&k=326110-HarryPot-8N9I1MLT
+        $.ajax({
+			url: "https://tastedive.com/api/similar?q=Harry+Potter+and+the+Sorcerer's+Stone&type=movies&k=326110-HarryPot-8N9I1MLT&verbose=1",
+			method: "GET",
+            dataType: 'jsonp'
+		}).then(function(response) {
+            console.log(response.Similar.Results);
+            $("#similar-movies").empty();
+            $("#similar-movies").append("<H3>"+"THESE ARE ALL SIMILAR MOVIES"+"</H3>");
+            for(var i = 0; response.Similar.Results.length; i++)
+            {
+                $("#similar-movies").append("<h4>"+response.Similar.Results[i].Name+"</h4>");
+                $("#similar-movies").append("<h5>"+response.Similar.Results[i].wTeaser+"</h5>");
+            }
+        });
+
 
     });
 
