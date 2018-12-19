@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Page Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/5.7.0/firebase.js"></script>
+
+</head>
+<body>
+    <form id="chat-form">
+            Chat <input type="text" name="chatComment" id="chatComment" value=""><br>
+            <input id="submit" type="submit" value="Submit">
+    </form>
+    <div id="chat-room" style="height: 350px; overflow: auto;"></div>
+        
+    </div>
+    
+    <script>
+
+    var config = {
+        apiKey: "AIzaSyBGzNaZIOBDEMfSUnTNxWTyavig3LsWXE8",
+        authDomain: "test-hp-chat.firebaseapp.com",
+        databaseURL: "https://test-hp-chat.firebaseio.com",
+        projectId: "test-hp-chat",
+        storageBucket: "test-hp-chat.appspot.com",
+        messagingSenderId: "364666926683"
+    };
+    firebase.initializeApp(config);
+    var database = firebase.database();
+    database.ref().on("value", function(snapshot) {
+
+    if(snapshot.hasChild("chat")==true)
+    {
+        $("#chat-room").html(snapshot.val().chat.chatRoom);
+    }
+
+    if(sessionStorage.getItem("username")==null)
+            {
+                var player = prompt("Please enter your name", "");
+                sessionStorage.clear();
+                sessionStorage.setItem("username", player);
+            }
+
+    });
+
+    function pad(n) {
+        return n<10 ? '0'+n : n;
+    }
+    
+    $("#submit").on("click", function(event) {
+            event.preventDefault();
+            if(sessionStorage.getItem("username")!=null){
+                var dt = new Date();
+                var theTime = "("+pad(dt.getHours()) + ":" + pad(dt.getMinutes()) + ":" + pad(dt.getSeconds())+")";
+                $("#chat-room").prepend("<p>"+sessionStorage.getItem("username") +" "+ theTime +": " + $("#chatComment").val().trim()+"</p>");
+                // console.log($("#chat-room").html());
+                // console.log("submit");
+                firebase.database().ref('chat/').set({
+                    chatRoom: $("#chat-room").html()
+                });
+                $("#chatComment").val("");
+            }
+        });
+
+    </script>
+
+</body>
+</html>
